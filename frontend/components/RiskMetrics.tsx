@@ -7,8 +7,8 @@ import {
   ShieldExclamationIcon,
   ExclamationTriangleIcon,
   ChartBarIcon,
-  TrendingUpIcon,
-  TrendingDownIcon
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
 } from '@heroicons/react/24/outline'
 
 interface RiskMetric {
@@ -171,9 +171,9 @@ export default function RiskMetrics() {
                 {metric.change && (
                   <div className="flex items-center space-x-1">
                     {metric.change.startsWith('+') ? (
-                      <TrendingUpIcon className="h-3 w-3 text-red-400" />
+                      <ArrowTrendingUpIcon className="h-3 w-3 text-red-400" />
                     ) : (
-                      <TrendingDownIcon className="h-3 w-3 text-green-400" />
+                      <ArrowTrendingDownIcon className="h-3 w-3 text-green-400" />
                     )}
                     <span className={`text-xs ${
                       metric.change.startsWith('+') ? 'text-red-400' : 'text-green-400'
