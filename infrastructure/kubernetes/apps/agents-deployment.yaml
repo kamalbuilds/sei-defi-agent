@@ -1,0 +1,396 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus-portfolio-agent
+  namespace: nexus-ENVIRONMENT
+  labels:
+    app: nexus-ai-defi
+    component: portfolio-agent
+    environment: ENVIRONMENT
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: nexus-ai-defi
+      component: portfolio-agent
+  template:
+    metadata:
+      labels:
+        app: nexus-ai-defi
+        component: portfolio-agent
+        environment: ENVIRONMENT
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3001"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: nexus-agents-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: portfolio-agent
+        image: ghcr.io/nexus-ai-defi/nexus-agent:IMAGE_TAG
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 3001
+          protocol: TCP
+        env:
+        - name: AGENT_TYPE
+          value: "portfolio"
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: nexus-config
+              key: NODE_ENV
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexus-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexus-secrets
+              key: REDIS_URL
+        - name: CLAUDE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: nexus-secrets
+              key: CLAUDE_API_KEY
+        - name: PORTFOLIO_REBALANCE_INTERVAL
+          valueFrom:
+            configMapKeyRef:
+              name: nexus-config
+              key: PORTFOLIO_REBALANCE_INTERVAL
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        volumeMounts:
+        - name: agent-logs
+          mountPath: /app/logs
+      volumes:
+      - name: agent-logs
+        emptyDir: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus-risk-agent
+  namespace: nexus-ENVIRONMENT
+  labels:
+    app: nexus-ai-defi
+    component: risk-agent
+    environment: ENVIRONMENT
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: nexus-ai-defi
+      component: risk-agent
+  template:
+    metadata:
+      labels:
+        app: nexus-ai-defi
+        component: risk-agent
+        environment: ENVIRONMENT
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3002"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: nexus-agents-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: risk-agent
+        image: ghcr.io/nexus-ai-defi/nexus-agent:IMAGE_TAG
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 3002
+          protocol: TCP
+        env:
+        - name: AGENT_TYPE
+          value: "risk"
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: nexus-config
+              key: NODE_ENV
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexus-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexus-secrets
+              key: REDIS_URL
+        - name: CLAUDE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: nexus-secrets
+              key: CLAUDE_API_KEY
+        - name: RISK_CHECK_INTERVAL
+          valueFrom:
+            configMapKeyRef:
+              name: nexus-config
+              key: RISK_CHECK_INTERVAL
+        - name: MAX_DRAWDOWN_LIMIT
+          valueFrom:
+            configMapKeyRef:
+              name: nexus-config
+              key: MAX_DRAWDOWN_LIMIT
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        volumeMounts:
+        - name: agent-logs
+          mountPath: /app/logs
+      volumes:
+      - name: agent-logs
+        emptyDir: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus-analytics-agent
+  namespace: nexus-ENVIRONMENT
+  labels:
+    app: nexus-ai-defi
+    component: analytics-agent
+    environment: ENVIRONMENT
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: nexus-ai-defi
+      component: analytics-agent
+  template:
+    metadata:
+      labels:
+        app: nexus-ai-defi
+        component: analytics-agent
+        environment: ENVIRONMENT
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3003"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: nexus-agents-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: analytics-agent
+        image: ghcr.io/nexus-ai-defi/nexus-agent:IMAGE_TAG
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 3003
+          protocol: TCP
+        env:
+        - name: AGENT_TYPE
+          value: "analytics"
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: nexus-config
+              key: NODE_ENV
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexus-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexus-secrets
+              key: REDIS_URL
+        - name: CLAUDE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: nexus-secrets
+              key: CLAUDE_API_KEY
+        - name: ANALYTICS_BATCH_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: nexus-config
+              key: ANALYTICS_BATCH_SIZE
+        - name: ANALYTICS_PROCESSING_INTERVAL
+          valueFrom:
+            configMapKeyRef:
+              name: nexus-config
+              key: ANALYTICS_PROCESSING_INTERVAL
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        volumeMounts:
+        - name: agent-logs
+          mountPath: /app/logs
+      volumes:
+      - name: agent-logs
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexus-portfolio-agent
+  namespace: nexus-ENVIRONMENT
+  labels:
+    app: nexus-ai-defi
+    component: portfolio-agent
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3001
+    targetPort: http
+    protocol: TCP
+  selector:
+    app: nexus-ai-defi
+    component: portfolio-agent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexus-risk-agent
+  namespace: nexus-ENVIRONMENT
+  labels:
+    app: nexus-ai-defi
+    component: risk-agent
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3002
+    targetPort: http
+    protocol: TCP
+  selector:
+    app: nexus-ai-defi
+    component: risk-agent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nexus-analytics-agent
+  namespace: nexus-ENVIRONMENT
+  labels:
+    app: nexus-ai-defi
+    component: analytics-agent
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3003
+    targetPort: http
+    protocol: TCP
+  selector:
+    app: nexus-ai-defi
+    component: analytics-agent
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nexus-agents-sa
+  namespace: nexus-ENVIRONMENT
+  labels:
+    app: nexus-ai-defi
+    component: agents
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: nexus-agents-role
+  namespace: nexus-ENVIRONMENT
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: nexus-agents-rolebinding
+  namespace: nexus-ENVIRONMENT
+subjects:
+- kind: ServiceAccount
+  name: nexus-agents-sa
+  namespace: nexus-ENVIRONMENT
+roleRef:
+  kind: Role
+  name: nexus-agents-role
+  apiGroup: rbac.authorization.k8s.io

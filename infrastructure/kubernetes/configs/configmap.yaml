@@ -1,0 +1,161 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexus-config
+  namespace: nexus-ENVIRONMENT
+  labels:
+    app: nexus-ai-defi
+    environment: ENVIRONMENT
+data:
+  # Application Configuration
+  NODE_ENV: "ENVIRONMENT"
+  LOG_LEVEL: "info"
+  API_VERSION: "v1"
+  
+  # Sei Blockchain Configuration
+  SEI_CHAIN_ID: "pacific-1"
+  SEI_RPC_URL: "https://rpc.sei-apis.com"
+  SEI_REST_URL: "https://rest.sei-apis.com"
+  
+  # Agent Configuration
+  AGENT_HEARTBEAT_INTERVAL: "30000"
+  AGENT_MAX_RETRY_ATTEMPTS: "3"
+  AGENT_TIMEOUT: "300000"
+  
+  # Portfolio Management
+  PORTFOLIO_REBALANCE_INTERVAL: "3600000"
+  PORTFOLIO_RISK_THRESHOLD: "0.1"
+  MAX_POSITION_SIZE: "0.2"
+  
+  # Risk Management
+  RISK_CHECK_INTERVAL: "10000"
+  MAX_DRAWDOWN_LIMIT: "0.15"
+  VOLATILITY_THRESHOLD: "0.25"
+  
+  # Analytics
+  ANALYTICS_BATCH_SIZE: "1000"
+  ANALYTICS_PROCESSING_INTERVAL: "60000"
+  METRICS_RETENTION_DAYS: "30"
+  
+  # Cache Configuration
+  CACHE_TTL: "300"
+  CACHE_MAX_SIZE: "10000"
+  
+  # Rate Limiting
+  RATE_LIMIT_WINDOW: "900000"
+  RATE_LIMIT_MAX_REQUESTS: "100"
+  
+  # Monitoring
+  METRICS_ENABLED: "true"
+  TRACING_ENABLED: "true"
+  HEALTH_CHECK_PATH: "/health"
+  
+  # Features Flags
+  FEATURE_ARBITRAGE_ENABLED: "true"
+  FEATURE_PORTFOLIO_OPTIMIZATION: "true"
+  FEATURE_RISK_ANALYTICS: "true"
+  FEATURE_SOCIAL_TRADING: "false"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexus-nginx-config
+  namespace: nexus-ENVIRONMENT
+  labels:
+    app: nexus-ai-defi
+    component: nginx
+data:
+  nginx.conf: |
+    events {
+        worker_connections 1024;
+    }
+    
+    http {
+        upstream nexus_backend {
+            least_conn;
+            server nexus-backend:3000 max_fails=3 fail_timeout=30s;
+        }
+        
+        upstream nexus_agents {
+            least_conn;
+            server nexus-portfolio-agent:3001 max_fails=3 fail_timeout=30s;
+            server nexus-risk-agent:3002 max_fails=3 fail_timeout=30s;
+            server nexus-analytics-agent:3003 max_fails=3 fail_timeout=30s;
+        }
+        
+        # Rate limiting
+        limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
+        limit_req_zone $binary_remote_addr zone=agents:10m rate=5r/s;
+        
+        # Security headers
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';" always;
+        
+        server {
+            listen 80;
+            server_name _;
+            
+            # Health check endpoint
+            location /health {
+                access_log off;
+                return 200 "healthy\n";
+                add_header Content-Type text/plain;
+            }
+            
+            # API endpoints
+            location /api/ {
+                limit_req zone=api burst=20 nodelay;
+                proxy_pass http://nexus_backend;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_cache_bypass $http_upgrade;
+                proxy_read_timeout 300s;
+                proxy_connect_timeout 60s;
+                proxy_send_timeout 60s;
+            }
+            
+            # Agent communication endpoints
+            location /agents/ {
+                limit_req zone=agents burst=10 nodelay;
+                proxy_pass http://nexus_agents;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_cache_bypass $http_upgrade;
+                proxy_read_timeout 300s;
+            }
+            
+            # WebSocket support
+            location /ws {
+                proxy_pass http://nexus_backend;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection "Upgrade";
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+            
+            # Static files
+            location / {
+                proxy_pass http://nexus_backend;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+        }
+    }

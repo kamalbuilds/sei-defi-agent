@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nexus-ENVIRONMENT
+  labels:
+    name: nexus-ENVIRONMENT
+    environment: ENVIRONMENT
+    project: nexus-ai-defi
+    managed-by: kubernetes
+  annotations:
+    description: "NEXUS AI DeFi Platform - ENVIRONMENT Environment"
+    contact: "devops@nexus-ai-defi.com"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: compute-quota
+  namespace: nexus-ENVIRONMENT
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.cpu: "8"
+    limits.memory: 16Gi
+    persistentvolumeclaims: "10"
+    count/deployments.apps: "20"
+    count/services: "10"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: resource-limits
+  namespace: nexus-ENVIRONMENT
+spec:
+  limits:
+  - default:
+      cpu: "500m"
+      memory: "1Gi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "256Mi"
+    type: Container
+  - max:
+      cpu: "2"
+      memory: "4Gi"
+    min:
+      cpu: "50m"
+      memory: "64Mi"
+    type: Container
