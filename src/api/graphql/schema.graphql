@@ -1,0 +1,500 @@
+# NEXUS AI DeFi Platform - GraphQL Schema
+
+scalar Date
+scalar Decimal
+scalar JSON
+
+type Query {
+  # Agent queries
+  agents(filter: AgentFilter): [Agent!]!
+  agent(id: ID!): Agent
+  agentPerformance(id: ID!, timeRange: TimeRange!): AgentPerformance
+  
+  # Portfolio queries
+  portfolios(userId: ID!): [Portfolio!]!
+  portfolio(id: ID!): Portfolio
+  portfolioValue(id: ID!, currency: String = "USD"): Decimal
+  portfolioHistory(id: ID!, timeRange: TimeRange!): [PortfolioSnapshot!]!
+  
+  # Arbitrage queries
+  arbitrageOpportunities(filter: ArbitrageFilter): [ArbitrageOpportunity!]!
+  arbitrageHistory(filter: ArbitrageHistoryFilter): [ArbitrageExecution!]!
+  
+  # Payment queries
+  payments(userId: ID!, filter: PaymentFilter): [Payment!]!
+  payment(id: ID!): Payment
+  
+  # Analytics queries
+  analytics(type: AnalyticsType!, params: JSON!): JSON
+  marketData(symbols: [String!]!): [MarketData!]!
+  performanceMetrics(entityId: ID!, entityType: EntityType!): PerformanceMetrics
+}
+
+type Mutation {
+  # Agent mutations
+  createAgent(input: CreateAgentInput!): Agent!
+  updateAgent(id: ID!, input: UpdateAgentInput!): Agent!
+  deleteAgent(id: ID!): Boolean!
+  deployAgent(id: ID!): Agent!
+  pauseAgent(id: ID!): Agent!
+  
+  # Portfolio mutations
+  createPortfolio(input: CreatePortfolioInput!): Portfolio!
+  updatePortfolio(id: ID!, input: UpdatePortfolioInput!): Portfolio!
+  rebalancePortfolio(id: ID!, strategy: RebalanceStrategy!): Portfolio!
+  
+  # Payment mutations
+  createPayment(input: CreatePaymentInput!): Payment!
+  processPayment(id: ID!): Payment!
+  refundPayment(id: ID!): Payment!
+  
+  # User mutations
+  updateUserPreferences(input: UserPreferencesInput!): User!
+}
+
+type Subscription {
+  # Agent subscriptions
+  agentUpdates(agentId: ID): Agent!
+  agentPerformance(agentId: ID!): AgentPerformance!
+  
+  # Portfolio subscriptions
+  portfolioUpdates(portfolioId: ID!): Portfolio!
+  portfolioValue(portfolioId: ID!): Decimal!
+  
+  # Market subscriptions
+  marketData(symbols: [String!]!): MarketData!
+  arbitrageOpportunities: ArbitrageOpportunity!
+  
+  # Notification subscriptions
+  notifications(userId: ID!): Notification!
+  systemAlerts: SystemAlert!
+}
+
+# Agent Types
+type Agent {
+  id: ID!
+  name: String!
+  type: AgentType!
+  status: AgentStatus!
+  version: String!
+  config: JSON!
+  performance: AgentPerformance
+  createdAt: Date!
+  updatedAt: Date!
+  deployedAt: Date
+  userId: ID!
+  user: User!
+}
+
+enum AgentType {
+  ARBITRAGE
+  MARKET_MAKER
+  SENTIMENT_ANALYZER
+  RISK_MANAGER
+  PORTFOLIO_OPTIMIZER
+  YIELD_FARMER
+  NFT_TRADER
+}
+
+enum AgentStatus {
+  DRAFT
+  TESTING
+  DEPLOYED
+  PAUSED
+  ERROR
+}
+
+type AgentPerformance {
+  totalReturns: Decimal!
+  winRate: Float!
+  sharpeRatio: Float!
+  maxDrawdown: Float!
+  tradesExecuted: Int!
+  successfulTrades: Int!
+  averageTradeTime: Float!
+  lastTradeAt: Date
+}
+
+input AgentFilter {
+  type: AgentType
+  status: AgentStatus
+  userId: ID
+  minPerformance: Float
+}
+
+input CreateAgentInput {
+  name: String!
+  type: AgentType!
+  config: JSON!
+}
+
+input UpdateAgentInput {
+  name: String
+  config: JSON
+  status: AgentStatus
+}
+
+# Portfolio Types
+type Portfolio {
+  id: ID!
+  name: String!
+  description: String
+  totalValue: Decimal!
+  currency: String!
+  allocations: [Allocation!]!
+  performance: PortfolioPerformance!
+  riskProfile: RiskProfile!
+  createdAt: Date!
+  updatedAt: Date!
+  userId: ID!
+  user: User!
+}
+
+type Allocation {
+  id: ID!
+  asset: Asset!
+  percentage: Float!
+  value: Decimal!
+  targetPercentage: Float!
+  rebalanceThreshold: Float!
+}
+
+type Asset {
+  id: ID!
+  symbol: String!
+  name: String!
+  type: AssetType!
+  price: Decimal!
+  marketCap: Decimal
+  volume24h: Decimal
+  change24h: Float
+}
+
+enum AssetType {
+  CRYPTOCURRENCY
+  TOKEN
+  NFT
+  LP_TOKEN
+  STABLE_COIN
+}
+
+type PortfolioPerformance {
+  totalReturns: Decimal!
+  dailyReturns: Float!
+  weeklyReturns: Float!
+  monthlyReturns: Float!
+  yearlyReturns: Float!
+  volatility: Float!
+  sharpeRatio: Float!
+  maxDrawdown: Float!
+}
+
+type PortfolioSnapshot {
+  timestamp: Date!
+  totalValue: Decimal!
+  allocations: JSON!
+  returns: Float!
+}
+
+enum RiskProfile {
+  CONSERVATIVE
+  MODERATE
+  AGGRESSIVE
+  CUSTOM
+}
+
+input CreatePortfolioInput {
+  name: String!
+  description: String
+  initialAllocations: [AllocationInput!]!
+  riskProfile: RiskProfile!
+  currency: String = "USD"
+}
+
+input UpdatePortfolioInput {
+  name: String
+  description: String
+  allocations: [AllocationInput!]
+  riskProfile: RiskProfile
+}
+
+input AllocationInput {
+  assetId: ID!
+  percentage: Float!
+  targetPercentage: Float
+  rebalanceThreshold: Float
+}
+
+enum RebalanceStrategy {
+  PROPORTIONAL
+  THRESHOLD_BASED
+  TIME_BASED
+  VOLATILITY_WEIGHTED
+}
+
+# Arbitrage Types
+type ArbitrageOpportunity {
+  id: ID!
+  tokenA: Asset!
+  tokenB: Asset!
+  exchangeA: Exchange!
+  exchangeB: Exchange!
+  priceA: Decimal!
+  priceB: Decimal!
+  profitMargin: Float!
+  estimatedProfit: Decimal!
+  gasEstimate: Decimal!
+  netProfit: Decimal!
+  confidence: Float!
+  expiresAt: Date!
+  createdAt: Date!
+}
+
+type ArbitrageExecution {
+  id: ID!
+  opportunity: ArbitrageOpportunity!
+  status: ExecutionStatus!
+  actualProfit: Decimal
+  gasUsed: Decimal
+  slippage: Float
+  executedAt: Date!
+  completedAt: Date
+  errorMessage: String
+}
+
+type Exchange {
+  id: ID!
+  name: String!
+  type: ExchangeType!
+  fees: ExchangeFees!
+  supported: Boolean!
+}
+
+type ExchangeFees {
+  trading: Float!
+  withdrawal: Decimal!
+}
+
+enum ExchangeType {
+  CEX
+  DEX
+  AMM
+}
+
+enum ExecutionStatus {
+  PENDING
+  EXECUTING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+input ArbitrageFilter {
+  minProfitMargin: Float
+  maxGasEstimate: Decimal
+  exchanges: [ID!]
+  tokens: [ID!]
+}
+
+input ArbitrageHistoryFilter {
+  status: ExecutionStatus
+  dateRange: DateRangeInput
+  minProfit: Decimal
+}
+
+# Payment Types
+type Payment {
+  id: ID!
+  type: PaymentType!
+  status: PaymentStatus!
+  amount: Decimal!
+  currency: String!
+  description: String
+  metadata: JSON
+  createdAt: Date!
+  processedAt: Date
+  userId: ID!
+  user: User!
+}
+
+enum PaymentType {
+  SUBSCRIPTION
+  TRANSACTION_FEE
+  PROFIT_SHARE
+  WITHDRAWAL
+  DEPOSIT
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+input CreatePaymentInput {
+  type: PaymentType!
+  amount: Decimal!
+  currency: String!
+  description: String
+  metadata: JSON
+}
+
+input PaymentFilter {
+  type: PaymentType
+  status: PaymentStatus
+  dateRange: DateRangeInput
+  minAmount: Decimal
+  maxAmount: Decimal
+}
+
+# User Types
+type User {
+  id: ID!
+  email: String!
+  username: String
+  preferences: UserPreferences!
+  subscription: Subscription
+  createdAt: Date!
+  updatedAt: Date!
+}
+
+type UserPreferences {
+  currency: String!
+  timezone: String!
+  notifications: NotificationSettings!
+  riskTolerance: RiskProfile!
+  tradingHours: TradingHours
+}
+
+type NotificationSettings {
+  email: Boolean!
+  push: Boolean!
+  sms: Boolean!
+  discord: Boolean!
+  telegram: Boolean!
+}
+
+type TradingHours {
+  start: String!
+  end: String!
+  timezone: String!
+  weekendsEnabled: Boolean!
+}
+
+input UserPreferencesInput {
+  currency: String
+  timezone: String
+  notifications: NotificationSettingsInput
+  riskTolerance: RiskProfile
+  tradingHours: TradingHoursInput
+}
+
+input NotificationSettingsInput {
+  email: Boolean
+  push: Boolean
+  sms: Boolean
+  discord: Boolean
+  telegram: Boolean
+}
+
+input TradingHoursInput {
+  start: String
+  end: String
+  timezone: String
+  weekendsEnabled: Boolean
+}
+
+# Analytics Types
+enum AnalyticsType {
+  PORTFOLIO_ANALYSIS
+  MARKET_SENTIMENT
+  RISK_ASSESSMENT
+  PERFORMANCE_ATTRIBUTION
+  CORRELATION_ANALYSIS
+  VOLATILITY_ANALYSIS
+}
+
+type PerformanceMetrics {
+  totalReturns: Decimal!
+  annualizedReturns: Float!
+  volatility: Float!
+  sharpeRatio: Float!
+  maxDrawdown: Float!
+  calmarRatio: Float!
+  winRate: Float!
+  profitFactor: Float!
+}
+
+type MarketData {
+  symbol: String!
+  price: Decimal!
+  volume: Decimal!
+  marketCap: Decimal
+  change24h: Float!
+  high24h: Decimal!
+  low24h: Decimal!
+  timestamp: Date!
+}
+
+# Notification Types
+type Notification {
+  id: ID!
+  type: NotificationType!
+  title: String!
+  message: String!
+  data: JSON
+  read: Boolean!
+  createdAt: Date!
+  userId: ID!
+}
+
+type SystemAlert {
+  id: ID!
+  severity: AlertSeverity!
+  title: String!
+  message: String!
+  component: String
+  resolved: Boolean!
+  createdAt: Date!
+  resolvedAt: Date
+}
+
+enum NotificationType {
+  TRADE_EXECUTED
+  PORTFOLIO_REBALANCED
+  AGENT_STATUS_CHANGED
+  PAYMENT_PROCESSED
+  SYSTEM_MAINTENANCE
+  PRICE_ALERT
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
+
+# Common Types
+enum EntityType {
+  AGENT
+  PORTFOLIO
+  USER
+}
+
+enum TimeRange {
+  HOUR
+  DAY
+  WEEK
+  MONTH
+  QUARTER
+  YEAR
+  ALL
+}
+
+input DateRangeInput {
+  start: Date!
+  end: Date!
+}

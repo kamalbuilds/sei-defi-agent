@@ -4,6 +4,9 @@
 
 NEXUS AI DeFi is a cutting-edge decentralized finance platform that leverages AI agents for autonomous yield optimization, risk management, and cross-protocol arbitrage. Built on the Sei blockchain for lightning-fast execution and low costs.
 
+### Demo Video 
+
+
 ## 🌟 Features
 
 ### 🤖 AI Agent Ecosystem
