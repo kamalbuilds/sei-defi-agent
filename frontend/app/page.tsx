@@ -82,8 +82,8 @@ export default function HomePage() {
           >
             <h1 className="text-6xl font-bold text-white mb-6">
               The Future of{' '}
-              <span className="bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent">
-                DeFi Trading
+              <span className="bg-gradient-to-r from-blue-400 to-pink-500 bg-clip-text text-transparent">
+                DeFi Trading on Sei
               </span>
             </h1>
             <p className="text-xl text-gray-300 mb-10 max-w-3xl mx-auto">

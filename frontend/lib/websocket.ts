@@ -9,7 +9,7 @@ class WebSocketManager {
   connect() {
     if (this.socket?.connected) return
 
-    this.socket = io(process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:4000', {
+    this.socket = io(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:4000', {
       transports: ['websocket', 'polling'],
       timeout: 20000,
       forceNew: true,

@@ -87,10 +87,10 @@ const riskMetrics = [
 ]
 
 const marketData = [
-  { pair: 'ETH/USDC', price: '$2,485.30', change: '+2.3%', volume: '$1.2B' },
-  { pair: 'BTC/USDT', price: '$43,250.80', change: '+1.8%', volume: '$890M' },
+  { pair: 'ETH/USDC', price: '$4,595.30', change: '+2.3%', volume: '$1.2B' },
+  { pair: 'BTC/USDT', price: '$112,950.80', change: '+1.8%', volume: '$890M' },
   { pair: 'UNI/ETH', price: '0.0028', change: '-0.5%', volume: '$45M' },
-  { pair: 'LINK/USD', price: '$14.67', change: '+3.2%', volume: '$156M' }
+  { pair: 'LINK/USD', price: '$23.78', change: '+3.2%', volume: '$156M' }
 ]
 
 export default function AnalyticsPage() {

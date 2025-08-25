@@ -14,8 +14,8 @@ import { startMonitoring } from './infrastructure/monitoring/metrics';
 // Configuration
 const config = {
   api: {
-    port: process.env.API_PORT || 3000,
-    wsPort: process.env.WS_PORT || 3001,
+    port: parseInt(process.env.PORT || process.env.API_PORT || '4000'),
+    wsPort: parseInt(process.env.WS_PORT || '4001'),
   },
   redis: {
     url: process.env.REDIS_URL || 'redis://localhost:6379',

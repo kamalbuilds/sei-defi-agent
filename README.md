@@ -4,8 +4,13 @@
 
 NEXUS AI DeFi is a cutting-edge decentralized finance platform that leverages AI agents for autonomous yield optimization, risk management, and cross-protocol arbitrage. Built on the Sei blockchain for lightning-fast execution and low costs.
 
+- Also created a PR to add YEI Finance Support in the Sei Agent Kit - 
+
+https://github.com/CambrianAgents/sei-agent-kit/pull/3
+
 ### Demo Video 
 
+https://github.com/user-attachments/assets/e05f0dd2-1748-4db4-8821-7e525e1dbaa4
 
 ## 🌟 Features
 
